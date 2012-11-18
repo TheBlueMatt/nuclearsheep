@@ -72,6 +72,8 @@ public class ARPSpoofLayer {
 				while (true) {
 					Packet packet = captor.getPacket();
 					if (packet instanceof ARPPacket) {
+						if (((ARPPacket)packet).sender_hardaddr == device.mac_address)
+							return;
 						synchronized(ips) {
 							try {
 								Inet4Address address = (Inet4Address)InetAddress.getByAddress(((ARPPacket)packet).sender_protoaddr);
@@ -198,13 +200,14 @@ public class ARPSpoofLayer {
 							}
 							packet.target_hardaddr = addr.mac;
 							packet.target_protoaddr = addr.ip.getAddress();
+							
 							synchronized (sender) {
 								sender.sendPacket(packet);
 							}
 						}
 					}
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(2000);
 					} catch (InterruptedException e) {
 						return;
 					}
