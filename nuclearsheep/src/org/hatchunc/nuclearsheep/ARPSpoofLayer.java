@@ -289,6 +289,7 @@ public class ARPSpoofLayer {
 		}
 		final JpcapSender sender = JpcapSender.openDevice(this.device);
 		synchronized(spoofTargets) {
+			List<ARPPacket> packets = new LinkedList<ARPPacket>();
 			for (IPMACPair addr : spoofTargets) {
 				ARPPacket packet = new ARPPacket();
 				
@@ -312,6 +313,14 @@ public class ARPSpoofLayer {
 				synchronized (sender) {
 					sender.sendPacket(packet);
 				}
+				packets.add(packet);
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) { }
+			synchronized (sender) {
+				for (ARPPacket packet : packets)
+					sender.sendPacket(packet);
 			}
 			spoofTargets.clear();
 		}

