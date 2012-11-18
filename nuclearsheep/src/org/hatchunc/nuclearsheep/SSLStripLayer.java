@@ -143,7 +143,7 @@ public class SSLStripLayer {
 		}).start();
 	}
 	
-	public void stopSSLStrip() throws Exception {// Woooo generic exception, I'm so cool
+	public void stopSSLStrip() throws IOException {
 		if (sslStripProcess == null)
 			return;
 		if (System.getProperty("os.name").startsWith("Windows")) {

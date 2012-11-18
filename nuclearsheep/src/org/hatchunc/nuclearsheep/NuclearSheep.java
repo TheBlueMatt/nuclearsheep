@@ -28,6 +28,7 @@ import jpcap.NetworkInterface;
 public class NuclearSheep extends javax.swing.JFrame {
 
 	ARPSpoofLayer arp;
+	SSLStripLayer strip;
 	List<IPMACPair> pairs, send = new LinkedList<IPMACPair>();
 	boolean button;
 	ListSelectionModel listSelectionModel;
@@ -41,8 +42,10 @@ public class NuclearSheep extends javax.swing.JFrame {
     	NetworkInterface networkInterface = networkInterfaces.get(0);
     	try {
     		arp= new ARPSpoofLayer(networkInterface);
+    		strip = new SSLStripLayer(networkInterface);
 		} catch (IOException e) {
 			try {
+				strip.stopSSLStrip();
 				arp.stopARPSpoofs();
 			} catch (IOException e1) {
 				System.exit(0);
@@ -216,6 +219,7 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 	}
 	else{
 		try {
+			strip.stopSSLStrip();
 			arp.stopARPSpoofs();
 		} catch (IOException e) {
 			System.exit(0);
