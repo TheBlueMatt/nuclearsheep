@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.DefaultCaret;
@@ -40,6 +41,8 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 	
     /** Creates new form NuclearSheep */
     public NuclearSheep() {
+    	this.setTitle("Nuclear Sheep");
+    	
     	List<NetworkInterface> networkInterfaces = ARPSpoofLayer.getPotentialInterfaces();
     	if(networkInterfaces.size()==0)
     		System.exit(0);
@@ -88,12 +91,8 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
     private void initComponents() {
         bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
-      /*menuBar1 = new java.awt.MenuBar();  //menu implementation
+      menuBar1 = new java.awt.MenuBar();  //menu implementation
         menu1 = new java.awt.Menu();
-        menu2 = new java.awt.Menu();
-        menuBar2 = new java.awt.MenuBar();
-        menu3 = new java.awt.Menu();
-        menu4 = new java.awt.Menu();*/
         jFrame1 = new javax.swing.JFrame();
         jFrame2 = new javax.swing.JFrame();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 2), new java.awt.Dimension(0, 2), new java.awt.Dimension(32767, 2));
@@ -103,22 +102,11 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
         jButton1 = new javax.swing.JButton();
-      /*jMenuBar1 = new javax.swing.JMenuBar();  //menu implementation
+      jMenuBar1 = new javax.swing.JMenuBar();  //menu implementation
         jMenu1 = new javax.swing.JMenu();
-        jMenuItem2 = new javax.swing.JMenuItem();
-        jMenuItem1 = new javax.swing.JMenuItem();*/
 
-     /* menu1.setLabel("File");
+      menu1.setLabel("File");
         menuBar1.add(menu1);
-
-        menu2.setLabel("Edit");
-        menuBar1.add(menu2);
-
-        menu3.setLabel("File");
-        menuBar2.add(menu3);
-
-        menu4.setLabel("Edit");
-        menuBar2.add(menu4);*/
 
         javax.swing.GroupLayout jFrame1Layout = new javax.swing.GroupLayout(jFrame1.getContentPane());
         jFrame1.getContentPane().setLayout(jFrame1Layout);
@@ -173,18 +161,13 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
         
         
         //TODO: Implement Menu Window
-      /*jMenu1.setText("File");
-
-        jMenuItem2.setText("Refresh");
-        jMenu1.add(jMenuItem2);
-
-        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
-        jMenuItem1.setText("Exit");
-        jMenu1.add(jMenuItem1);
+      jMenu1.setText("1. Select your target(s)     2. Click Nuke    3. ???    4. Profit!");
 
         jMenuBar1.add(jMenu1);
+        jMenu1.setEnabled(false);
+        jMenuBar1.setEnabled(false);
 
-        setJMenuBar(jMenuBar1);*/
+        setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -273,12 +256,8 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
+        	UIManager.setLookAndFeel(
+                    UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (ClassNotFoundException ex) {
             java.util.logging.Logger.getLogger(NuclearSheep.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
@@ -308,19 +287,14 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
     @SuppressWarnings("rawtypes")
 	private javax.swing.JList jList1;
     private javax.swing.AbstractListModel jList1Model;
-  /*private javax.swing.JMenu jMenu1;  //menu declarations
+  private javax.swing.JMenu jMenu1;  //menu declarations
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;*/
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
-  /*private java.awt.Menu menu1;     //menu declarations
-    private java.awt.Menu menu2;
-    private java.awt.Menu menu3;
-    private java.awt.Menu menu4;
+  private java.awt.Menu menu1;     //menu declarations
     private java.awt.MenuBar menuBar1;
-    private java.awt.MenuBar menuBar2;*/
+    private java.awt.MenuBar menuBar2;
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration
 
