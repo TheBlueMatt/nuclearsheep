@@ -12,12 +12,9 @@ package org.hatchunc.nuclearsheep;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.swing.ListSelectionModel;
-
 import jpcap.NetworkInterface;
 
 /**
@@ -72,6 +69,7 @@ public class NuclearSheep extends javax.swing.JFrame {
     private void initComponents() {
         bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
+        ListSelectionModel listSelectionModel;
       /*menuBar1 = new java.awt.MenuBar();  //menu implementation
         menu1 = new java.awt.Menu();
         menu2 = new java.awt.Menu();
@@ -131,17 +129,14 @@ public class NuclearSheep extends javax.swing.JFrame {
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
         jScrollPane1.setViewportView(jTextArea1);
-
+        
+        listSelectionModel = jList1.getSelectionModel();
+        
         jList1.setModel(new javax.swing.AbstractListModel() {
             
         	public int getSize() { return pairs.size(); }
         	public Object getElementAt(int i) { return pairs.get(i).ip.getHostName(); }
-        	
-        /* //original code
-           *String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-           *public int getSize() { return strings.length; }
-           *public Object getElementAt(int i) { return strings[i]; } 
-           */
+        
         });
         jScrollPane2.setViewportView(jList1);
 
@@ -281,12 +276,12 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
-    private java.awt.Menu menu1;
+  /*private java.awt.Menu menu1;     //menu declarations
     private java.awt.Menu menu2;
     private java.awt.Menu menu3;
     private java.awt.Menu menu4;
     private java.awt.MenuBar menuBar1;
-    private java.awt.MenuBar menuBar2;
+    private java.awt.MenuBar menuBar2;*/
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration
 }
