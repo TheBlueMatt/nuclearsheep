@@ -22,8 +22,34 @@ import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
 public class ARPSpoofLayer {
+	class MACByteArrayWrapper {
+		public byte[] mac;
+		public MACByteArrayWrapper(byte[] mac) {
+			this.mac = mac;
+		}
+		@Override
+		public int hashCode() {
+			int value = 0;
+			for (int i = 0; i < mac.length; i++) {
+				value *= 133;
+				value += (int)(mac[i] & 0x000000ff);
+			}
+			return value;
+		}
+		@Override
+		public boolean equals(Object other) {
+			if (other == null || !(other instanceof MACByteArrayWrapper) ||
+					((MACByteArrayWrapper)other).mac.length != this.mac.length)
+				return false;
+			for (int i = 0; i < this.mac.length; i++)
+				if (((MACByteArrayWrapper)other).mac[i] != this.mac[i])
+					return false;
+			return true;
+		}
+	}
+	
 	private NetworkInterface device;
-	private Map<byte[], Inet4Address> ips = new HashMap<byte[], Inet4Address>();
+	private Map<MACByteArrayWrapper, Inet4Address> ips = new HashMap<MACByteArrayWrapper, Inet4Address>();
 	private List<IPMACPair> spoofTargets = new LinkedList<IPMACPair>();
 	private Object gatewayLock = new Object();
 	private byte[] gatewayMAC = null;
@@ -74,21 +100,29 @@ public class ARPSpoofLayer {
 					if (packet instanceof ARPPacket) {
 						if (((ARPPacket)packet).sender_hardaddr == device.mac_address)
 							return;
-						synchronized(ips) {
-							try {
-								Inet4Address address = (Inet4Address)InetAddress.getByAddress(((ARPPacket)packet).sender_protoaddr);
-								ips.put((((ARPPacket)packet).sender_hardaddr), address);
-								if (address.equals(gwAddress)) {
-									synchronized(gatewayLock) {
-										if (gatewayMAC == null) {
-											gatewayMAC = ((ARPPacket)packet).sender_hardaddr;
-											gatewayLock.notify();
-										}
+						try {
+							Inet4Address address = (Inet4Address)InetAddress.getByAddress(((ARPPacket)packet).sender_protoaddr);
+							if (address.equals(gwAddress)) {
+								synchronized(gatewayLock) {
+									if (gatewayMAC == null) {
+										gatewayMAC = ((ARPPacket)packet).sender_hardaddr;
+										gatewayLock.notify();
 									}
 								}
-							} catch (UnknownHostException e) {
-								throw new RuntimeException(e); // Should never happen
+							} else {
+								synchronized(ips) {
+									boolean add = true;
+									for (NetworkInterfaceAddress ifAddress : device.addresses)
+										if (address.equals(ifAddress.address)) {
+											add = false;
+											break;
+										}
+									if (add)
+										ips.put(new MACByteArrayWrapper(((ARPPacket)packet).sender_hardaddr), address);
+								}
 							}
+						} catch (UnknownHostException e) {
+							throw new RuntimeException(e); // Should never happen
 						}
 					}
 				}
@@ -222,8 +256,8 @@ public class ARPSpoofLayer {
 	public List<IPMACPair> getIPMACPairs() {
 		List<IPMACPair> retVal = new LinkedList<IPMACPair>();
 		synchronized(ips) {
-			for (Map.Entry<byte[], Inet4Address> entry : ips.entrySet()) {
-				retVal.add(new IPMACPair(entry.getKey(), entry.getValue()));
+			for (Map.Entry<MACByteArrayWrapper, Inet4Address> entry : ips.entrySet()) {
+				retVal.add(new IPMACPair(entry.getKey().mac, entry.getValue()));
 			}
 		}
 		return retVal;
