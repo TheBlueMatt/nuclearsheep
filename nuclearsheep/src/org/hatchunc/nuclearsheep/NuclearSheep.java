@@ -40,11 +40,6 @@ public class NuclearSheep extends javax.swing.JFrame {
     		System.exit(0);
     	NetworkInterface networkInterface = networkInterfaces.get(0);
     	try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e2) {
-			System.exit(0);
-		}
-    	try {
     		arp= new ARPSpoofLayer(networkInterface);
 		} catch (IOException e) {
 			try {
@@ -53,7 +48,12 @@ public class NuclearSheep extends javax.swing.JFrame {
 				System.exit(0);
 			}
 			System.exit(0);
-		}   	
+		}
+    	try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e2) {
+			System.exit(0);
+		}
     	pairs = arp.getIPMACPairs();
     	
     	initComponents();
