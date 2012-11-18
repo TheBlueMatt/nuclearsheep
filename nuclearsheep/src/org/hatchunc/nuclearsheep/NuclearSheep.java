@@ -18,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.text.DefaultCaret;
 import jpcap.NetworkInterface;
 
@@ -30,7 +32,7 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 
 	ARPSpoofLayer arp;
 	SSLStripLayer strip;
-	List<IPMACPair> pairs, send = new LinkedList<IPMACPair>();
+	List<IPMACPair> pairs;
 	boolean button;
 	ListSelectionModel listSelectionModel;
 	
@@ -150,12 +152,13 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
         
         listSelectionModel = jList1.getSelectionModel();
         
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            
+        jList1Model = new javax.swing.AbstractListModel() {
+
         	public int getSize() { return pairs.size(); }
         	public Object getElementAt(int i) { return pairs.get(i).ip.getHostName(); }
-        
-        });
+
+        };
+        jList1.setModel(jList1Model);
         jScrollPane2.setViewportView(jList1);
 
         jButton1.setText("Nuke");
@@ -225,6 +228,7 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 	button=!button;
 	if(button){
+		List<IPMACPair> send = new LinkedList<IPMACPair>();
 		int i=listSelectionModel.getMaxSelectionIndex(), j=listSelectionModel.getMinSelectionIndex();
 		while(true){
 			if(listSelectionModel.isSelectedIndex(i))
@@ -247,6 +251,9 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 			System.exit(0);
 		}
 		pairs = arp.getIPMACPairs();
+		for (ListDataListener listener : jList1Model.getListDataListeners()) {
+			listener.contentsChanged(new ListDataEvent(jList1Model, ListDataEvent.CONTENTS_CHANGED, 0, pairs.size()));
+		}
 		jList1.repaint();
 		jList1.setEnabled(true);
 		jButton1.setText("Nuke");
@@ -299,6 +306,7 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
     private javax.swing.JFrame jFrame2;
     @SuppressWarnings("rawtypes")
 	private javax.swing.JList jList1;
+    private javax.swing.AbstractListModel jList1Model;
   /*private javax.swing.JMenu jMenu1;  //menu declarations
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;

