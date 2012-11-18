@@ -46,8 +46,8 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
     		strip = new SSLStripLayer(networkInterface);
 		} catch (IOException e) {
 			try {
-				strip.stopSSLStrip();
-				arp.stopARPSpoofs();
+				if(strip!=null)	strip.stopSSLStrip();
+				if(arp!=null)	arp.stopARPSpoofs();
 			} catch (IOException e2) { }
 			System.exit(0);
 		}
@@ -85,7 +85,6 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
     private void initComponents() {
         bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
-        ListSelectionModel listSelectionModel;
       /*menuBar1 = new java.awt.MenuBar();  //menu implementation
         menu1 = new java.awt.Menu();
         menu2 = new java.awt.Menu();
@@ -226,7 +225,14 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 	button=!button;
 	if(button){
-		send.add(pairs.get(0)); //TODO send elements based upon selection 
+		int i=listSelectionModel.getMaxSelectionIndex(), j=listSelectionModel.getMinSelectionIndex();
+		while(true){
+			if(listSelectionModel.isSelectedIndex(i))
+				send.add(pairs.get(i));
+			if(i==j) break;
+			i--;
+		}
+		jList1.setEnabled(false);
 		arp.startARPSpoof(send);
 		jButton1.setText("Stop");
 		jButton1.setBackground(Color.green);
@@ -240,6 +246,9 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 			} catch (IOException e2) { }
 			System.exit(0);
 		}
+		pairs = arp.getIPMACPairs();
+		jList1.repaint();
+		jList1.setEnabled(true);
 		jButton1.setText("Nuke");
 		jButton1.setBackground(Color.red);
 	}
