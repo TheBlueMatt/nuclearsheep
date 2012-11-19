@@ -374,11 +374,10 @@ public class ARPSpoofLayer {
 		ArrayList<NetworkInterface> retVal = new ArrayList<NetworkInterface>();
 		retVal.ensureCapacity(10);
 		for (NetworkInterface device : JpcapCaptor.getDeviceList()) {
-			if (device.loopback)
+			if (device.loopback || !device.datalink_description.equals("Ethernet"))
 				continue;
 			for (NetworkInterfaceAddress addr : device.addresses) {
-				if (addr.address instanceof Inet4Address &&
-						((Inet4Address)addr.address).isSiteLocalAddress()) {
+				if (addr.address instanceof Inet4Address) {
 					retVal.add(device);
 					continue;
 				}
