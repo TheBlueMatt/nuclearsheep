@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
@@ -44,8 +45,11 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 		this.setTitle("Nuclear Sheep");
 
 		List<NetworkInterface> networkInterfaces = ARPSpoofLayer.getPotentialInterfaces();
-		if(networkInterfaces.size()==0)
+		if(networkInterfaces.size()==0) {
+			JOptionPane.showMessageDialog(this, "Found 0 network interfaces with an IPv4 address to spoof on. Exiting.");
 			System.exit(0);
+		}
+		JOptionPane.showMessageDialog(this, "Found " + networkInterfaces.size() + " network interface(s) with an IPv4 address to spoof on. Picking one to use at random.");//TODO allow picking
 		NetworkInterface networkInterface = networkInterfaces.get(0);
 		try {
 			arp= new ARPSpoofLayer(networkInterface);
@@ -55,6 +59,8 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 				if(strip!=null)	strip.stopSSLStrip();
 				if(arp!=null)	arp.stopARPSpoofs();
 			} catch (IOException e2) { }
+			JOptionPane.showMessageDialog(this, "IOException opening network interfaces...exiting");
+			e.printStackTrace();
 			System.exit(0);
 		}
 		try {
@@ -271,7 +277,6 @@ public class NuclearSheep extends javax.swing.JFrame implements UserInfoListener
 
 		/* Create and display the form */
 		java.awt.EventQueue.invokeLater(new Runnable() {
-
 			public void run() {
 				new NuclearSheep().setVisible(true);
 			}
