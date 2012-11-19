@@ -9,7 +9,7 @@
   <h2>NuclearSheep</h2>
   <img src=Sheep_icon_05.jpg alt="SHEEP" /><br>
   This is nuclearsheep, you probably want to check out our <a href="https://github.com/TheBlueMatt/nuclearsheep">GitHub</a>.<br>
-  Before you can run, you need libpcap (get this from your local package manager) and the Jpcap package for your OS (see <a href="http://netresearch.ics.uci.edu/kfujii/Jpcap/doc/download.html">their download page</a>).<br>
+  Before you can run, you need libpcap, sslstrip (get these from your local package manager) and the Jpcap package for your OS (see <a href="http://netresearch.ics.uci.edu/kfujii/Jpcap/doc/download.html">their download page</a>).<br>
   Grab <a href=nuclearsheep.jar>the jar</a> and run (as root) with java -jar nuclearsheep.jar
 </body>
 </html>

@@ -99,14 +99,14 @@ public class ARPSpoofLayer {
 				packet.target_protoaddr = addr.ip.getAddress();
 				
 				synchronized (sender) {
-					sender.sendPacket(packet);
+					//sender.sendPacket(packet);
 				}
 				
 				packet.operation = ARPPacket.ARP_REQUEST;
 				packet.target_hardaddr = new byte[] {0, 0, 0, 0, 0, 0};
 				
 				synchronized (sender) {
-					sender.sendPacket(packet);
+					//sender.sendPacket(packet);
 				}
 			}
 		}
@@ -221,10 +221,6 @@ public class ARPSpoofLayer {
 						continue;
 					byte[] address = addr.address.getAddress();
 					byte[] subnet = addr.subnet.getAddress();
-					System.out.print(addr.subnet.toString() + " (");
-					for (byte b : subnet)
-						System.out.print((b & 0x000000ff) + " ");
-					System.out.println(")");
 					long addressLong = 0;
 					long addrBase = 0;
 					long numAddress = 0;
