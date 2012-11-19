@@ -62,15 +62,15 @@ public class SSLStripLayer {
 			matchTargets.add(new MatchTarget(in));
 		
 		this.deviceName = device.name;
-		sslStripProcess= Runtime.getRuntime().exec("/usr/bin/sslstrip -k -f -l 8080 -w /tmp/sslstrip.log");
+		sslStripProcess= Runtime.getRuntime().exec("sslstrip -k -f -l 8080 -w /tmp/sslstrip.log");
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			//TODO use something like "netsh interface portproxy add v4tov4 8000 192.168.0.100 9000"
 		} else {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('1');
 			writer.close();
-			Runtime.getRuntime().exec("/usr/sbin/iptables -t nat -A POSTROUTING -o " + deviceName + " -j MASQUERADE");
-			Runtime.getRuntime().exec("/usr/sbin/iptables -t nat -A PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
+			Runtime.getRuntime().exec("iptables -t nat -A POSTROUTING -o " + deviceName + " -j MASQUERADE");
+			Runtime.getRuntime().exec("iptables -t nat -A PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
 		}
 				
 		//Kick off the matching thread
@@ -187,8 +187,8 @@ public class SSLStripLayer {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('0');
 			writer.close();
-			Runtime.getRuntime().exec("/usr/sbin/iptables -t nat -D POSTROUTING -o " + deviceName + " -j MASQUERADE");
-			Runtime.getRuntime().exec("/usr/sbin/iptables -t nat -D PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
+			Runtime.getRuntime().exec("iptables -t nat -D POSTROUTING -o " + deviceName + " -j MASQUERADE");
+			Runtime.getRuntime().exec("iptables -t nat -D PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
 		}
 		sslStripProcess.destroy();
 		new File("/tmp/sslstrip.log").delete();
