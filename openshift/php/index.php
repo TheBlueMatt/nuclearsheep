@@ -15,8 +15,6 @@
   Grab <a href=nuclearsheep.jar>the jar</a> and run (as root) with java -jar nuclearsheep.jar<br>
   You can find a copy of the code at <a href="https://github.com/TheBlueMatt/nuclearsheep">GitHub</a>.<br>
 -->
-  <br>
-  <br>
   <h3>FAQ</h3>
   <ol>
 	<li>How do I protect myself online from attacks like these?<br>
@@ -44,5 +42,7 @@
 		Anyway...see the list above.
 	</li>
   </ol>
+<?php require_once("bitcoin.php"); ?>
+  Donate to NuclearSheep's development via bitcoin: <a href="bitcoin:<?php echo($address); ?>?label=NuclearSheep"><?php echo($address); ?></a>
 </body>
 </html>
