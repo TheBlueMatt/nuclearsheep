@@ -58,7 +58,7 @@ public class SSLStripLayer {
 		this.deviceName = device.name;
 		sslStripProcess= Runtime.getRuntime().exec("sslstrip -k -f -l 8080 -w " + sslStripLog.getAbsolutePath());
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			//TODO use something like "netsh interface portproxy add v4tov4 8000 192.168.0.100 9000"
+			Runtime.getRuntime().exec("netsh interface portproxy add v4tov4 80 127.0.0.1 8080 0.0.0.0");
 		} else {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('1');
@@ -179,7 +179,7 @@ public class SSLStripLayer {
 		if (sslStripProcess == null)
 			return;
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			//TODO use something like "netsh interface portproxy add v4tov4 8000 192.168.0.100 9000"
+			Runtime.getRuntime().exec("netsh interface portproxy delete v4tov4 80 0.0.0.0");
 		} else {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('0');
