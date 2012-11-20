@@ -62,7 +62,6 @@ public class SSLStripLayer {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('1');
 			writer.close();
-			Runtime.getRuntime().exec("iptables -t nat -A POSTROUTING -o " + deviceName + " -j MASQUERADE");
 			Runtime.getRuntime().exec("iptables -t nat -A PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
 		}
 		
@@ -184,7 +183,6 @@ public class SSLStripLayer {
 			FileWriter writer = new FileWriter("/proc/sys/net/ipv4/ip_forward");
 			writer.append('0');
 			writer.close();
-			Runtime.getRuntime().exec("iptables -t nat -D POSTROUTING -o " + deviceName + " -j MASQUERADE");
 			Runtime.getRuntime().exec("iptables -t nat -D PREROUTING -i " + deviceName + " -p tcp --dport 80 -j REDIRECT --to-port " + SSLSTRIP_PORT);
 		}
 		sslStripProcess.destroy();
